@@ -14,9 +14,10 @@ function circle(g, x, y, r) {
 
 // Visualize the given points with the given message.
 // If "no3d" is set, ignore the 3D cue for size.
-function visualize(points, canvas, message, no3d) {
+function visualize(points, canvas, message, no3d, noscale, radiate_from_idx) {
   var width = canvas.width;
   var height = canvas.height;
+    
   var g = canvas.getContext('2d');
   g.fillStyle = 'white';
   g.fillRect(0, 0, width, height);
@@ -43,13 +44,34 @@ function visualize(points, canvas, message, no3d) {
     });
   }
 
+    var pos = [];
+    
   for (var i = 0; i < n; i++) {
     var p = is3d ? points[index[i]] : points[i];
-    g.fillStyle = p.color;
-    var x = (p.coords[0] - centerX) * scale + width / 2;
-    var y = -(p.coords[1] - centerY) * scale + height / 2;
-    var r = is3d ? zScale(p.coords[2]) : 4;
-    circle(g, x, y, r);
+      g.fillStyle = p.color;
+      if(noscale) {
+          var x = p.coords[0];
+          var y = p.coords[1];
+      }
+      else {
+          var x = (p.coords[0] - centerX) * scale + width / 2;
+          var y = -(p.coords[1] - centerY) * scale + height / 2;
+      }
+      var r = is3d ? zScale(p.coords[2]) : 4;
+
+      pos.push([x,y]);
+      
+      circle(g, x, y, r);
+
+      if(radiate_from_idx !== undefined) {
+          g.strokeStyle = 'rgba(0,0,0,.1)';
+          g.lineWidth = 1;
+          g.beginPath();
+          g.moveTo(points[radiate_from_idx].coords[0], points[radiate_from_idx].coords[1]);
+          g.lineTo(x,y);
+          g.stroke();
+          g.strokeStyle = 'rgba(255,255,255,.5)';
+      }
   }
 
   if (message) {
@@ -57,6 +79,8 @@ function visualize(points, canvas, message, no3d) {
     g.font = '24pt Lato';
     g.fillText(message, 8, 34);
   }
+
+    return pos;
 }
 
 if(typeof module != "undefined") module.exports = {
